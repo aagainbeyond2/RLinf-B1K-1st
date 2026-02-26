@@ -91,6 +91,17 @@ env:
     total_num_envs: 4
     max_episode_steps: 4500
     max_steps_per_rollout_epoch: 4500
+    robot_pose:
+      use_presampled_robot_pose: true
+      randomize_presampled_pose: false
+    instance_sampling:
+      enabled: true
+      eval_on_train_instances: true
+      test_hidden: false
+      eval_instance_ids: null
+      sample_mode: random
+      settle_physics_steps: 25
+      lock_robot_pose: true
     video_cfg:
       save_video: True
       video_base_dir: ${runner.logger.log_path}/video/rollout
@@ -98,6 +109,17 @@ env:
     total_num_envs: 4
     max_episode_steps: 4500
     max_steps_per_rollout_epoch: 4500
+    robot_pose:
+      use_presampled_robot_pose: true
+      randomize_presampled_pose: false
+    instance_sampling:
+      enabled: true
+      eval_on_train_instances: true
+      test_hidden: false
+      eval_instance_ids: null
+      sample_mode: random
+      settle_physics_steps: 25
+      lock_robot_pose: true
     video_cfg:
       save_video: True
       video_base_dir: ${runner.logger.log_path}/video/eval
@@ -107,7 +129,7 @@ rollout:
   save_rollout:
     enabled: true
     every_n_steps: 1
-    dir: "/data1/heyelin/rlinf/RLinf-main/offline_rollouts"
+    dir: ${runner.logger.log_path}/offline_rollouts
   offline:
     dir: null
     loop: true

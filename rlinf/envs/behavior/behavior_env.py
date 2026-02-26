@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import csv
 import json
 import os
 import sys
@@ -24,6 +25,7 @@ import torch
 from av.container import Container
 from av.stream import Stream
 from omegaconf import OmegaConf, open_dict
+import omnigibson as og
 from omnigibson.envs import VectorEnvironment
 from omnigibson.learning.utils.eval_utils import (
     PROPRIOCEPTION_INDICES,
@@ -34,6 +36,8 @@ from omnigibson.learning.utils.obs_utils import (
     write_video,
 )
 from omnigibson.macros import gm
+from omnigibson.utils.asset_utils import get_task_instance_path
+from omnigibson.utils.python_utils import recursively_convert_to_torch
 
 from rlinf.envs.utils import list_of_dict_to_dict_of_list, to_tensor
 from rlinf.utils.logging import get_logger
@@ -120,6 +124,14 @@ class BehaviorEnv(gym.Env):
         self.seed = self.cfg.seed + seed_offset
         self.record_metrics = record_metrics
         self._is_start = True
+        self._instance_sampling_cfg = self.cfg.get("instance_sampling", {})
+        self._instance_sampling_enabled = bool(
+            self._instance_sampling_cfg.get("enabled", False)
+        )
+        self._instance_sampling_episode = 0
+        self._instance_pool = None
+        self._instance_rng = np.random.default_rng(int(self.seed))
+        self._locked_robot_pose = None
 
         self.logger = get_logger()
 
@@ -253,6 +265,13 @@ class BehaviorEnv(gym.Env):
             self.cfg.omnigibson_cfg["task"]["activity_name"] = TASK_INDICES_TO_NAMES[
                 self.cfg.task_idx
             ]
+            robot_pose_cfg = self.cfg.get("robot_pose", {})
+            self.cfg.omnigibson_cfg["task"]["use_presampled_robot_pose"] = bool(
+                robot_pose_cfg.get("use_presampled_robot_pose", True)
+            )
+            self.cfg.omnigibson_cfg["task"]["randomize_presampled_pose"] = bool(
+                robot_pose_cfg.get("randomize_presampled_pose", False)
+            )
 
         # Read task description
         task_description_path = os.path.join(
@@ -276,6 +295,171 @@ class BehaviorEnv(gym.Env):
             self.num_envs,
             OmegaConf.to_container(self.cfg.omnigibson_cfg, resolve=True),
         )
+
+    def _get_instance_pool(self) -> list[int]:
+        if self._instance_pool is not None:
+            return self._instance_pool
+
+        cfg = self._instance_sampling_cfg or {}
+        eval_on_train_instances = bool(cfg.get("eval_on_train_instances", False))
+        test_hidden = bool(cfg.get("test_hidden", False))
+        eval_instance_ids = cfg.get("eval_instance_ids", None)
+        task_idx = int(self.cfg.task_idx)
+        task_name = TASK_INDICES_TO_NAMES[task_idx]
+
+        if eval_on_train_instances:
+            episodes_path = os.path.join(
+                gm.DATA_PATH, "2025-challenge-task-instances", "metadata", "episodes.jsonl"
+            )
+            with open(episodes_path, "r") as f:
+                episodes = [json.loads(line) for line in f if line.strip()]
+            instances_to_run = []
+            for episode in episodes:
+                try:
+                    episode_index = int(episode.get("episode_index"))
+                except Exception:
+                    continue
+                if episode_index // 10000 == task_idx:
+                    instances_to_run.append(int((episode_index // 10) % 1000))
+            if eval_instance_ids:
+                idxs = [int(x) for x in eval_instance_ids]
+                instances_to_run = [instances_to_run[i] for i in idxs]
+        elif test_hidden:
+            if eval_instance_ids is not None:
+                instances_to_run = [int(x) for x in eval_instance_ids]
+            else:
+                instances_to_run = list(range(10))
+        else:
+            csv_path = os.path.join(
+                gm.DATA_PATH, "2025-challenge-task-instances", "metadata", "test_instances.csv"
+            )
+            with open(csv_path, "r") as f:
+                lines = list(csv.reader(f))[1:]
+            row = lines[task_idx]
+            if row[1] != task_name:
+                raise RuntimeError(
+                    f"Task name mismatch: cfg={task_name} csv={row[1]} task_idx={task_idx}"
+                )
+            test_instances = [int(x) for x in row[2].strip().split(",") if x.strip()]
+            if eval_instance_ids:
+                idxs = [int(x) for x in eval_instance_ids]
+                instances_to_run = [test_instances[i] for i in idxs]
+            else:
+                instances_to_run = test_instances
+
+        self._instance_pool = [int(x) for x in instances_to_run]
+        if len(self._instance_pool) == 0:
+            raise RuntimeError(
+                f"Empty instance pool for task={task_name} task_idx={task_idx}"
+            )
+        return self._instance_pool
+
+    def _select_instance_id(self, env_index: int) -> int:
+        cfg = self._instance_sampling_cfg or {}
+        pool = self._get_instance_pool()
+        mode = str(cfg.get("sample_mode", "random")).lower()
+        if mode == "sequential":
+            idx = int(self._instance_sampling_episode + env_index) % len(pool)
+            return int(pool[idx])
+        idx = int(self._instance_rng.integers(0, len(pool)))
+        return int(pool[idx])
+
+    def _get_robot_from_subenv(self, subenv):
+        robot = None
+        try:
+            robot = subenv.scene.object_registry("name", "robot_r1")
+        except Exception:
+            robot = None
+        if robot is None:
+            try:
+                robot = subenv.task.get_agent(subenv)
+            except Exception:
+                robot = None
+        if robot is None:
+            try:
+                robots = getattr(subenv, "robots", None)
+                if isinstance(robots, (list, tuple)) and len(robots) > 0:
+                    robot = robots[0]
+            except Exception:
+                robot = None
+        return robot
+
+    def _apply_task_instance(self, subenv, instance_id: int, test_hidden: bool) -> None:
+        scene_model = subenv.task.scene_name
+        tro_filename = subenv.task.get_cached_activity_scene_filename(
+            scene_model=scene_model,
+            activity_name=subenv.task.activity_name,
+            activity_definition_id=subenv.task.activity_definition_id,
+            activity_instance_id=instance_id,
+        )
+        if test_hidden:
+            tro_file_path = os.path.join(
+                gm.DATA_PATH,
+                "2025-challenge-test-instances",
+                subenv.task.activity_name,
+                f"{tro_filename}-tro_state.json",
+            )
+        else:
+            tro_file_path = os.path.join(
+                get_task_instance_path(scene_model),
+                f"json/{scene_model}_task_{subenv.task.activity_name}_instances/{tro_filename}-tro_state.json",
+            )
+
+        with open(tro_file_path, "r") as f:
+            tro_state = recursively_convert_to_torch(json.load(f))
+
+        robot = self._get_robot_from_subenv(subenv)
+        presampled_robot_poses = None
+        for tro_key, state in tro_state.items():
+            if tro_key == "robot_poses":
+                presampled_robot_poses = state
+                continue
+            try:
+                entity = subenv.task.object_scope[tro_key]
+            except Exception:
+                continue
+            try:
+                entity.load_state(state, serialized=False)
+            except Exception:
+                continue
+
+        lock_robot_pose = bool((self._instance_sampling_cfg or {}).get("lock_robot_pose", True))
+        if robot is not None and presampled_robot_poses is not None:
+            if lock_robot_pose:
+                if self._locked_robot_pose is None:
+                    try:
+                        pose = presampled_robot_poses[robot.model_name][0]
+                        self._locked_robot_pose = (
+                            pose["position"],
+                            pose["orientation"],
+                        )
+                    except Exception:
+                        self._locked_robot_pose = robot.get_position_orientation()
+                robot_pos, robot_quat = self._locked_robot_pose
+                robot.set_position_orientation(robot_pos, robot_quat)
+                subenv.scene.write_task_metadata(
+                    key="robot_poses",
+                    data={robot.model_name: [{"position": robot_pos, "orientation": robot_quat}]},
+                )
+            else:
+                robot_pos = presampled_robot_poses[robot.model_name][0]["position"]
+                robot_quat = presampled_robot_poses[robot.model_name][0]["orientation"]
+                robot.set_position_orientation(robot_pos, robot_quat)
+                subenv.scene.write_task_metadata(key="robot_poses", data=presampled_robot_poses)
+
+        settle_steps = int((self._instance_sampling_cfg or {}).get("settle_physics_steps", 25))
+        if settle_steps > 0:
+            for _ in range(settle_steps):
+                og.sim.step_physics()
+                for entity in subenv.task.object_scope.values():
+                    try:
+                        if not entity.is_system and entity.exists:
+                            entity.keep_still()
+                    except Exception:
+                        continue
+
+        subenv.scene.update_initial_file()
+        subenv.scene.reset()
 
     # def _permute_and_norm(self, x):
     #     return x.to(torch.uint8)[..., :3].permute(2, 0, 1) / 255.0
@@ -461,6 +645,16 @@ class BehaviorEnv(gym.Env):
         return obs
 
     def reset(self):
+        if self._instance_sampling_enabled:
+            self._instance_sampling_episode += 1
+            test_hidden = bool((self._instance_sampling_cfg or {}).get("test_hidden", False))
+            envs = getattr(self.env, "envs", None)
+            if isinstance(envs, (list, tuple)) and len(envs) > 0:
+                for env_index, subenv in enumerate(envs):
+                    instance_id = self._select_instance_id(env_index)
+                    self._apply_task_instance(
+                        subenv, instance_id=int(instance_id), test_hidden=test_hidden
+                    )
         raw_obs, infos = self.env.reset()
         obs = self._wrap_obs(raw_obs)
         rewards = torch.zeros(self.num_envs, dtype=torch.float32, device=self.device)
