@@ -53,6 +53,20 @@ __all__ = ["BehaviorEnv"]
 _OMNI_STREAM_FILTER_INSTALLED = False
 
 
+def _infer_r1_trunk_qpos_from_translate(translate: float) -> list[float]:
+    translate = float(min(max(translate, 0.0), 2.0))
+    upright = np.asarray([0.45, -0.4, 0.0, 0.0], dtype=np.float32)
+    downward = np.asarray([1.6, -2.5, -0.94, 0.0], dtype=np.float32)
+    ground = np.asarray([1.735, -2.57, -2.1, 0.0], dtype=np.float32)
+    if translate <= 1.0:
+        a = translate
+        qpos = (1.0 - a) * upright + a * downward
+    else:
+        a = translate - 1.0
+        qpos = (1.0 - a) * downward + a * ground
+    return [float(x) for x in qpos.tolist()]
+
+
 class _LineFilterStream:
     def __init__(self, wrapped, should_drop: Callable[[str], bool]):
         self._wrapped = wrapped
@@ -272,6 +286,15 @@ class BehaviorEnv(gym.Env):
             self.cfg.omnigibson_cfg["task"]["randomize_presampled_pose"] = bool(
                 robot_pose_cfg.get("randomize_presampled_pose", False)
             )
+            if bool(robot_pose_cfg.get("use_eval_reset_joint_pos", True)):
+                trunk_translate = float(robot_pose_cfg.get("default_trunk_translate", 0.5))
+                reset_joint_pos = [0.0] * 28
+                trunk_qpos = _infer_r1_trunk_qpos_from_translate(trunk_translate)
+                reset_joint_pos[6:10] = trunk_qpos
+                reset_joint_pos[-4:] = [0.05, 0.05, 0.05, 0.05]
+                robots_cfg = self.cfg.omnigibson_cfg.get("robots", None)
+                if isinstance(robots_cfg, (list, tuple)) and len(robots_cfg) > 0:
+                    self.cfg.omnigibson_cfg["robots"][0]["reset_joint_pos"] = reset_joint_pos
 
         # Read task description
         task_description_path = os.path.join(

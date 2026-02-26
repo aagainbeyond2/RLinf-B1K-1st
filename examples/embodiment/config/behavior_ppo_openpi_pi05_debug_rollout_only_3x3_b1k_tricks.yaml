@@ -94,6 +94,8 @@ env:
     robot_pose:
       use_presampled_robot_pose: true
       randomize_presampled_pose: false
+      use_eval_reset_joint_pos: true
+      default_trunk_translate: 0.5
     instance_sampling:
       enabled: true
       eval_on_train_instances: true
@@ -112,6 +114,8 @@ env:
     robot_pose:
       use_presampled_robot_pose: true
       randomize_presampled_pose: false
+      use_eval_reset_joint_pos: true
+      default_trunk_translate: 0.5
     instance_sampling:
       enabled: true
       eval_on_train_instances: true
