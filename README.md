@@ -1,4 +1,5 @@
-# run b1k 1st rollout
+## Run B1K 1st Rollout
+```bash
 export ISAAC_PATH=/data1/heyelin/rlinf/isaac-sim
 export OMNIGIBSON_DATA_PATH=/data1/heyelin/BEHAVIOR-1K-main/datasets
 export RLINF_DEBUG_SHAPES=1
