@@ -1,0 +1,283 @@
+== batch_from_jax.pkl ==
+2026-02-27 09:52:45.749547: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2026-02-27 09:52:45.749589: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2026-02-27 09:52:45.750691: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-02-27 09:52:46.591013: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+ len=2 type=tuple
+[0] type=Observation
+[0].images.base_0_rgb shape=(16, 224, 224, 3) dtype=float32 min=-1.000000 max=1.000000 mean=0.056426 std=0.363520
+[0].images.left_wrist_0_rgb shape=(16, 224, 224, 3) dtype=float32 min=-1.000000 max=1.000000 mean=-0.226177 std=0.508710
+[0].images.right_wrist_0_rgb shape=(16, 224, 224, 3) dtype=float32 min=-1.000000 max=1.000000 mean=-0.231512 std=0.522591
+[0].image_masks.base_0_rgb shape=(16,) dtype=bool min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+[0].image_masks.left_wrist_0_rgb shape=(16,) dtype=bool min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+[0].image_masks.right_wrist_0_rgb shape=(16,) dtype=bool min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+[0].state shape=(16, 32) dtype=float32 min=-20.727774 max=20.962166 mean=-0.093543 std=2.180132
+[0].tokenized_prompt shape=(16, 2) dtype=int32 min=0.000000 max=4.000000 mean=0.968750 std=1.489219
+[0].tokenized_prompt_mask shape=(16, 2) dtype=bool min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+[0].token_ar_mask type=NoneType
+[0].token_loss_mask type=NoneType
+[0].fast_tokens shape=(16, 200) dtype=int32 min=0.000000 max=1023.000000 mean=64.449997 std=112.183784
+[0].fast_token_mask shape=(16, 200) dtype=bool min=0.000000 max=1.000000 mean=0.805000 std=0.396201
+[1] shape=(16, 30, 32) dtype=float32 min=-5.524376 max=8.148871 mean=0.009497 std=0.721998
+== batch_noise_time.pkl ==
+noise shape=(16, 30, 32) dtype=float32 min=-3.600364 max=3.796875 mean=-0.005873 std=0.993163
+time shape=(16,) dtype=float32 min=0.043724 max=0.975784 mean=0.475078 std=0.315464
+== config_from_jax.pkl ==
+ type=TrainConfig
+name type=str
+project_name type=str
+exp_name type=str
+model type=PiBehaviorConfig
+model.action_dim type=int
+model.action_horizon type=int
+model.max_token_len type=int
+model.dtype type=str
+model.paligemma_variant type=str
+model.action_expert_variant type=str
+model.num_tasks type=int
+model.task_embedding_dim type=int
+model.max_num_subtask_states type=int
+model.task_data_path type=str
+model.use_correlated_noise type=bool
+model.correlation_beta type=float
+model.use_fast_auxiliary type=bool
+model.fast_loss_weight type=float
+model.fast_encoded_dims type=str
+model.fast_vocab_size type=int
+model.max_fast_tokens type=int
+model.fast_tokenizer_path type=NoneType
+model.use_kv_transform type=bool
+model.use_knowledge_insulation type=bool
+model.subtask_loss_weight type=float
+model.time_threshold_inpaint type=float
+model.freeze_vision_backbone type=bool
+weight_loader type=NoOpWeightLoader
+pytorch_weight_path type=str
+lr_schedule type=CosineDecaySchedule
+lr_schedule.warmup_steps type=int
+lr_schedule.peak_lr type=float
+lr_schedule.decay_steps type=int
+lr_schedule.decay_lr type=float
+optimizer type=AdamW
+optimizer.b1 type=float
+optimizer.b2 type=float
+optimizer.eps type=float
+optimizer.weight_decay type=float
+optimizer.clip_gradient_norm type=float
+ema_decay type=float
+weight_decay type=float
+betas len=2 type=tuple
+betas[0] type=float
+betas[1] type=float
+freeze_filter type=Nothing
+freeze_filter empty_object
+data type=LeRobotB1KDataConfig
+data.repo_id type=str
+data.assets type=AssetsConfig
+data.assets.assets_dir type=NoneType
+data.assets.asset_id type=NoneType
+data.base_config type=DataConfig
+data.base_config.repo_id type=NoneType
+data.base_config.asset_id type=NoneType
+data.base_config.norm_stats type=NoneType
+data.base_config.repack_transforms type=Group
+data.base_config.repack_transforms.inputs len=0 type=tuple
+data.base_config.repack_transforms.outputs len=0 type=tuple
+data.base_config.data_transforms type=Group
+data.base_config.data_transforms.inputs len=0 type=tuple
+data.base_config.data_transforms.outputs len=0 type=tuple
+data.base_config.model_transforms type=Group
+data.base_config.model_transforms.inputs len=0 type=tuple
+data.base_config.model_transforms.outputs len=0 type=tuple
+data.base_config.use_quantile_norm type=bool
+data.base_config.use_per_timestamp_norm type=bool
+data.base_config.task_type type=str
+data.base_config.action_sequence_keys len=1 type=tuple
+data.base_config.action_sequence_keys[0] type=str
+data.base_config.prompt_from_task type=bool
+data.base_config.rlds_data_dir type=NoneType
+data.base_config.behavior_dataset_root type=str
+data.base_config.action_space type=NoneType
+data.base_config.filter_dict_path type=NoneType
+data.base_config.episodes_index type=NoneType
+data.action_sequence_keys len=1 type=tuple
+data.action_sequence_keys[0] type=str
+data.use_delta_joint_actions type=bool
+data.use_fast_tokenization type=bool
+assets_base_dir type=str
+checkpoint_base_dir type=str
+seed type=NoneType
+batch_size type=int
+grad_accum_steps type=int
+max_grad_norm type=float
+num_workers type=int
+num_train_steps type=int
+log_interval type=int
+save_interval type=int
+keep_period type=int
+overwrite type=bool
+resume type=bool
+wandb_enabled type=bool
+policy_metadata type=NoneType
+fsdp_devices type=int
+val_log_interval type=int
+val_batch_size type=NoneType
+val_num_batches type=int
+val_repo_id type=NoneType
+val_episodes_index type=NoneType
+num_flow_samples type=int
+== data_config_from_jax.pkl ==
+ type=DataConfig
+repo_id type=str
+asset_id type=str
+norm_stats.actions type=NormStats
+norm_stats.actions.mean shape=(32,) dtype=float64 min=-0.002399 max=0.382819 mean=0.021385 std=0.078639
+norm_stats.actions.std shape=(32,) dtype=float64 min=0.000000 max=0.967756 mean=0.073307 std=0.227714
+norm_stats.actions.q01 shape=(32,) dtype=float64 min=-1.000000 max=0.000000 mean=-0.186075 std=0.238591
+norm_stats.actions.q99 shape=(32,) dtype=float64 min=0.000000 max=1.000000 mean=0.185844 std=0.237938
+norm_stats.actions.per_timestamp_mean shape=(30, 32) dtype=float64 min=-0.002783 max=0.382057 mean=0.021280 std=0.078322
+norm_stats.actions.per_timestamp_std shape=(30, 32) dtype=float64 min=0.000000 max=0.992320 mean=0.098005 std=0.226108
+norm_stats.actions.per_timestamp_q01 shape=(30, 32) dtype=float64 min=-1.000000 max=0.000000 mean=-0.182367 std=0.249398
+norm_stats.actions.per_timestamp_q99 shape=(30, 32) dtype=float64 min=0.000000 max=1.000000 mean=0.181889 std=0.248619
+norm_stats.actions.action_correlation_cholesky shape=(960, 960) dtype=float64 min=-0.909266 max=1.000000 mean=0.001950 std=0.032216
+norm_stats.actions.action_correlation_spatial shape=(32, 32) dtype=object min=nan max=nan mean=nan std=nan
+norm_stats.actions.action_correlation_temporal shape=(30, 30) dtype=float64 min=0.508494 max=1.000000 mean=0.865514 std=0.119116
+norm_stats.state type=NormStats
+norm_stats.state.mean shape=(32,) dtype=float64 min=-1.279843 max=0.934721 mean=-0.041923 std=0.396101
+norm_stats.state.std shape=(32,) dtype=float64 min=0.000000 max=0.783182 mean=0.285455 std=0.256581
+norm_stats.state.q01 shape=(32,) dtype=float64 min=-3.310832 max=0.395825 mean=-1.150287 std=1.130975
+norm_stats.state.q99 shape=(32,) dtype=float64 min=-0.389108 max=3.021688 mean=0.787154 std=0.916361
+norm_stats.state.per_timestamp_mean type=NoneType
+norm_stats.state.per_timestamp_std type=NoneType
+norm_stats.state.per_timestamp_q01 type=NoneType
+norm_stats.state.per_timestamp_q99 type=NoneType
+norm_stats.state.action_correlation_cholesky type=NoneType
+norm_stats.state.action_correlation_spatial type=NoneType
+norm_stats.state.action_correlation_temporal type=NoneType
+repack_transforms type=Group
+repack_transforms.inputs len=1 type=list
+repack_transforms.inputs[0] type=RepackTransform
+repack_transforms.inputs[0].structure.actions type=str
+repack_transforms.inputs[0].structure.episode_index type=str
+repack_transforms.inputs[0].structure.index type=str
+repack_transforms.inputs[0].structure.observation/egocentric_camera type=str
+repack_transforms.inputs[0].structure.observation/state type=str
+repack_transforms.inputs[0].structure.observation/wrist_image_left type=str
+repack_transforms.inputs[0].structure.observation/wrist_image_right type=str
+repack_transforms.inputs[0].structure.task_index type=str
+repack_transforms.inputs[0].structure.timestamp type=str
+repack_transforms.outputs len=0 type=tuple
+data_transforms type=Group
+data_transforms.inputs len=2 type=tuple
+data_transforms.inputs[0] type=B1kInputs
+data_transforms.inputs[0].model_type type=str
+data_transforms.inputs[1] type=DeltaActions
+data_transforms.inputs[1].mask len=23 type=tuple
+data_transforms.inputs[1].mask[0] type=bool
+data_transforms.inputs[1].mask[1] type=bool
+data_transforms.inputs[1].mask[2] type=bool
+data_transforms.inputs[1].mask[3] type=bool
+data_transforms.inputs[1].mask[4] type=bool
+data_transforms.inputs[1].mask[5] type=bool
+data_transforms.inputs[1].mask[6] type=bool
+data_transforms.inputs[1].mask[7] type=bool
+data_transforms.inputs[1].mask[8] type=bool
+data_transforms.inputs[1].mask[9] type=bool
+data_transforms.inputs[1].mask[10] type=bool
+data_transforms.inputs[1].mask[11] type=bool
+data_transforms.inputs[1].mask[12] type=bool
+data_transforms.inputs[1].mask[13] type=bool
+data_transforms.inputs[1].mask[14] type=bool
+data_transforms.inputs[1].mask[15] type=bool
+data_transforms.inputs[1].mask[16] type=bool
+data_transforms.inputs[1].mask[17] type=bool
+data_transforms.inputs[1].mask[18] type=bool
+data_transforms.inputs[1].mask[19] type=bool
+data_transforms.inputs[1].mask[20] type=bool
+data_transforms.inputs[1].mask[21] type=bool
+data_transforms.inputs[1].mask[22] type=bool
+data_transforms.outputs len=2 type=tuple
+data_transforms.outputs[0] type=AbsoluteActions
+data_transforms.outputs[0].mask len=23 type=tuple
+data_transforms.outputs[0].mask[0] type=bool
+data_transforms.outputs[0].mask[1] type=bool
+data_transforms.outputs[0].mask[2] type=bool
+data_transforms.outputs[0].mask[3] type=bool
+data_transforms.outputs[0].mask[4] type=bool
+data_transforms.outputs[0].mask[5] type=bool
+data_transforms.outputs[0].mask[6] type=bool
+data_transforms.outputs[0].mask[7] type=bool
+data_transforms.outputs[0].mask[8] type=bool
+data_transforms.outputs[0].mask[9] type=bool
+data_transforms.outputs[0].mask[10] type=bool
+data_transforms.outputs[0].mask[11] type=bool
+data_transforms.outputs[0].mask[12] type=bool
+data_transforms.outputs[0].mask[13] type=bool
+data_transforms.outputs[0].mask[14] type=bool
+data_transforms.outputs[0].mask[15] type=bool
+data_transforms.outputs[0].mask[16] type=bool
+data_transforms.outputs[0].mask[17] type=bool
+data_transforms.outputs[0].mask[18] type=bool
+data_transforms.outputs[0].mask[19] type=bool
+data_transforms.outputs[0].mask[20] type=bool
+data_transforms.outputs[0].mask[21] type=bool
+data_transforms.outputs[0].mask[22] type=bool
+data_transforms.outputs[1] type=B1kOutputs
+model_transforms type=Group
+model_transforms.inputs len=5 type=tuple
+model_transforms.inputs[0] type=ResizeImages
+model_transforms.inputs[0].height type=int
+model_transforms.inputs[0].width type=int
+model_transforms.inputs[1] type=ComputeSubtaskStateFromMeta
+model_transforms.inputs[1].dataset type=NoneType
+model_transforms.inputs[2] type=TaskIndexToTaskId
+model_transforms.inputs[2].task_mapping type=NoneType
+model_transforms.inputs[3] type=PadStatesAndActions
+model_transforms.inputs[3].model_action_dim type=int
+model_transforms.inputs[4] type=TokenizeFASTActions
+model_transforms.inputs[4].tokenizer_path type=str
+model_transforms.inputs[4].encoded_dim_ranges len=2 type=list
+model_transforms.inputs[4].encoded_dim_ranges[0] len=2 type=tuple
+model_transforms.inputs[4].encoded_dim_ranges[0][0] type=int
+model_transforms.inputs[4].encoded_dim_ranges[0][1] type=int
+model_transforms.inputs[4].encoded_dim_ranges[1] len=2 type=tuple
+model_transforms.inputs[4].encoded_dim_ranges[1][0] type=int
+model_transforms.inputs[4].encoded_dim_ranges[1][1] type=int
+model_transforms.inputs[4].max_fast_tokens type=int
+model_transforms.inputs[4].norm_stats.actions type=NormStats
+model_transforms.inputs[4].norm_stats.actions.mean shape=(32,) dtype=float64 min=-0.002399 max=0.382819 mean=0.021385 std=0.078639
+model_transforms.inputs[4].norm_stats.actions.std shape=(32,) dtype=float64 min=0.000000 max=0.967756 mean=0.073307 std=0.227714
+model_transforms.inputs[4].norm_stats.actions.q01 shape=(32,) dtype=float64 min=-1.000000 max=0.000000 mean=-0.186075 std=0.238591
+model_transforms.inputs[4].norm_stats.actions.q99 shape=(32,) dtype=float64 min=0.000000 max=1.000000 mean=0.185844 std=0.237938
+model_transforms.inputs[4].norm_stats.actions.per_timestamp_mean shape=(30, 32) dtype=float64 min=-0.002783 max=0.382057 mean=0.021280 std=0.078322
+model_transforms.inputs[4].norm_stats.actions.per_timestamp_std shape=(30, 32) dtype=float64 min=0.000000 max=0.992320 mean=0.098005 std=0.226108
+model_transforms.inputs[4].norm_stats.actions.per_timestamp_q01 shape=(30, 32) dtype=float64 min=-1.000000 max=0.000000 mean=-0.182367 std=0.249398
+model_transforms.inputs[4].norm_stats.actions.per_timestamp_q99 shape=(30, 32) dtype=float64 min=0.000000 max=1.000000 mean=0.181889 std=0.248619
+model_transforms.inputs[4].norm_stats.actions.action_correlation_cholesky shape=(960, 960) dtype=float64 min=-0.909266 max=1.000000 mean=0.001950 std=0.032216
+model_transforms.inputs[4].norm_stats.actions.action_correlation_spatial shape=(32, 32) dtype=object min=nan max=nan mean=nan std=nan
+model_transforms.inputs[4].norm_stats.actions.action_correlation_temporal shape=(30, 30) dtype=float64 min=0.508494 max=1.000000 mean=0.865514 std=0.119116
+model_transforms.inputs[4].norm_stats.state type=NormStats
+model_transforms.inputs[4].norm_stats.state.mean shape=(32,) dtype=float64 min=-1.279843 max=0.934721 mean=-0.041923 std=0.396101
+model_transforms.inputs[4].norm_stats.state.std shape=(32,) dtype=float64 min=0.000000 max=0.783182 mean=0.285455 std=0.256581
+model_transforms.inputs[4].norm_stats.state.q01 shape=(32,) dtype=float64 min=-3.310832 max=0.395825 mean=-1.150287 std=1.130975
+model_transforms.inputs[4].norm_stats.state.q99 shape=(32,) dtype=float64 min=-0.389108 max=3.021688 mean=0.787154 std=0.916361
+model_transforms.inputs[4].norm_stats.state.per_timestamp_mean type=NoneType
+model_transforms.inputs[4].norm_stats.state.per_timestamp_std type=NoneType
+model_transforms.inputs[4].norm_stats.state.per_timestamp_q01 type=NoneType
+model_transforms.inputs[4].norm_stats.state.per_timestamp_q99 type=NoneType
+model_transforms.inputs[4].norm_stats.state.action_correlation_cholesky type=NoneType
+model_transforms.inputs[4].norm_stats.state.action_correlation_spatial type=NoneType
+model_transforms.inputs[4].norm_stats.state.action_correlation_temporal type=NoneType
+model_transforms.inputs[4].use_per_timestamp type=bool
+model_transforms.outputs len=0 type=tuple
+use_quantile_norm type=bool
+use_per_timestamp_norm type=bool
+task_type type=str
+action_sequence_keys len=1 type=tuple
+action_sequence_keys[0] type=str
+prompt_from_task type=bool
+rlds_data_dir type=NoneType
+behavior_dataset_root type=str
+action_space type=NoneType
+filter_dict_path type=NoneType
+episodes_index type=NoneType

@@ -14,6 +14,7 @@
 
 import copy
 import gc
+import os
 
 from collections import deque
 from typing import Optional
@@ -901,6 +902,58 @@ class MultiStepRolloutWorker(Worker):
             self.cfg.env.train.max_steps_per_rollout_epoch
             // self.cfg.actor.model.num_action_chunks
         )
+        debug_enabled = str(
+            os.environ.get("RLINF_DEBUG_ROLLOUT_STEP", "")
+        ).lower() in ("1", "true", "yes", "on")
+
+        def _to_np(x):
+            if torch.is_tensor(x):
+                return x.detach().cpu().numpy()
+            if isinstance(x, np.ndarray):
+                return x
+            return np.asarray(x)
+
+        def _stats(x):
+            if torch.is_tensor(x):
+                x_np = _to_np(x)
+                device = x.device
+                if x_np.size == 0:
+                    return f"shape={tuple(x_np.shape)} dtype={x_np.dtype} device={device}"
+                x_f = x_np.astype(np.float32, copy=False)
+                return (
+                    f"shape={tuple(x_np.shape)} dtype={x_np.dtype} device={device} "
+                    f"min={float(x_f.min()):.6f} max={float(x_f.max()):.6f} "
+                    f"mean={float(x_f.mean()):.6f} std={float(x_f.std()):.6f}"
+                )
+            if isinstance(x, np.ndarray):
+                if x.size == 0:
+                    return f"shape={tuple(x.shape)} dtype={x.dtype}"
+                x_f = x.astype(np.float32, copy=False)
+                return (
+                    f"shape={tuple(x.shape)} dtype={x.dtype} "
+                    f"min={float(x_f.min()):.6f} max={float(x_f.max()):.6f} "
+                    f"mean={float(x_f.mean()):.6f} std={float(x_f.std()):.6f}"
+                )
+            return f"type={type(x).__name__} value={x}"
+
+        def _summarize(obj, prefix, lines, limit):
+            if len(lines) >= limit:
+                return
+            if isinstance(obj, dict):
+                for k in sorted(obj.keys()):
+                    _summarize(obj[k], f"{prefix}.{k}" if prefix else str(k), lines, limit)
+                return
+            if isinstance(obj, (list, tuple)):
+                if len(obj) == 0:
+                    lines.append(f"{prefix} len=0")
+                else:
+                    head = obj[0]
+                    if isinstance(head, str):
+                        lines.append(f"{prefix} len={len(obj)} head={head}")
+                    else:
+                        lines.append(f"{prefix} len={len(obj)} head_type={type(head).__name__}")
+                return
+            lines.append(f"{prefix} {_stats(obj)}")
 
         for _ in tqdm(
             range(self.cfg.algorithm.rollout_epoch),
@@ -921,6 +974,40 @@ class MultiStepRolloutWorker(Worker):
                         forward_inputs=result["forward_inputs"],
                         episode=env_output.get("episode", None),
                     )
+                    if debug_enabled and not getattr(self, "_debug_rollout_step_done", False):
+                        self._debug_rollout_step_done = True
+                        lines = []
+                        lines.append("RLINF_DEBUG_ROLLOUT_STEP enabled")
+                        lines.append(
+                            f"n_chunk_steps={n_chunk_steps} "
+                            f"(max_steps_per_rollout_epoch={self.cfg.env.train.max_steps_per_rollout_epoch}, "
+                            f"num_action_chunks={self.cfg.actor.model.num_action_chunks})"
+                        )
+                        lines.append(
+                            f"num_pipeline_stages={self.num_pipeline_stages} "
+                            f"(cfg.rollout.pipeline_stage_num)"
+                        )
+                        lines.append(
+                            f"stage_id={stage_id} (pipeline stage index in [0, {self.num_pipeline_stages - 1}])"
+                        )
+                        _summarize(env_output, "env_output", lines, 200)
+                        if isinstance(result, dict):
+                            for k in sorted(result.keys()):
+                                _summarize(result[k], f"result.{k}", lines, 200)
+                        lines.append(f"actions {_stats(actions)}")
+                        lines.append(
+                            f"ChunkStepResult prev_logprobs={_stats(chunk_step_result.prev_logprobs)} "
+                            f"prev_values={_stats(chunk_step_result.prev_values)} "
+                            f"dones={_stats(chunk_step_result.dones)} "
+                            f"rewards={_stats(chunk_step_result.rewards)}"
+                        )
+                        lines.append(
+                            f"buffer_list size={len(self.buffer_list)} "
+                            f"buffer_list[{stage_id}]={type(self.buffer_list[stage_id]).__name__}"
+                        )
+                        if self._rank == 0:
+                            print("\n".join(lines), flush=True)
+                        os._exit(0)
                     self.buffer_list[stage_id].append_result(chunk_step_result)
 
                     self.send_chunk_actions(actions)

@@ -1,0 +1,63 @@
+(MultiStepRolloutWorker pid=109056) env_obs.images shape=(1, 3, 1080, 1080) dtype=torch.float32 device=cpu min=0.000000 max=1.000000 mean=0.517460 std=0.179095
+(MultiStepRolloutWorker pid=109056) env_obs.wrist_images shape=(1, 2, 3, 1080, 1080) dtype=torch.float32 device=cpu min=0.000000 max=0.784314 mean=0.164242 std=0.220147
+(MultiStepRolloutWorker pid=109056) env_obs.states shape=(1, 23) dtype=torch.float32 device=cpu min=-1.448457 max=1.025311 mean=0.048135 std=0.480798
+(MultiStepRolloutWorker pid=109056) env_obs.task_id=[0]
+(MultiStepRolloutWorker pid=109056) env_obs.task_descriptions[0]=Turn on the radio receiver that's on the table in the living room.
+(MultiStepRolloutWorker pid=109056) processed_obs.image[base_0_rgb] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.764706 mean=0.034940 std=0.352727
+(MultiStepRolloutWorker pid=109056) processed_obs.image[left_wrist_0_rgb] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.560784 mean=-0.658692 std=0.461551
+(MultiStepRolloutWorker pid=109056) processed_obs.image[right_wrist_0_rgb] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.474510 mean=-0.684342 std=0.413902
+(MultiStepRolloutWorker pid=109056) processed_obs.image_mask[base_0_rgb] shape=(1,) dtype=torch.bool device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) processed_obs.image_mask[left_wrist_0_rgb] shape=(1,) dtype=torch.bool device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) processed_obs.image_mask[right_wrist_0_rgb] shape=(1,) dtype=torch.bool device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) processed_obs.state shape=(1, 32) dtype=torch.float64 device=cuda:0 min=-0.661073 max=1.184689 mean=0.158309 std=0.446908
+(MultiStepRolloutWorker pid=109056) observation.images[base_0_rgb] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.764706 mean=0.034940 std=0.352727
+(MultiStepRolloutWorker pid=109056) observation.images[left_wrist_0_rgb] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.560784 mean=-0.658692 std=0.461551
+(MultiStepRolloutWorker pid=109056) observation.images[right_wrist_0_rgb] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.474510 mean=-0.684342 std=0.413902
+(MultiStepRolloutWorker pid=109056) observation.image_masks[base_0_rgb] shape=(1,) dtype=torch.float32 device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) observation.image_masks[left_wrist_0_rgb] shape=(1,) dtype=torch.float32 device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) observation.image_masks[right_wrist_0_rgb] shape=(1,) dtype=torch.float32 device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) observation.state shape=(1, 32) dtype=torch.float64 device=cuda:0 min=-0.661073 max=1.184689 mean=0.158309 std=0.446908
+(MultiStepRolloutWorker pid=109056) preprocess.images[0] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.764706 mean=0.034940 std=0.352727
+(MultiStepRolloutWorker pid=109056) preprocess.images[1] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.560784 mean=-0.658692 std=0.461551
+(MultiStepRolloutWorker pid=109056) preprocess.images[2] shape=(1, 3, 224, 224) dtype=torch.float32 device=cuda:0 min=-1.000000 max=0.474510 mean=-0.684342 std=0.413902
+(MultiStepRolloutWorker pid=109056) preprocess.image_masks[0] shape=(1,) dtype=torch.float32 device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) preprocess.image_masks[1] shape=(1,) dtype=torch.float32 device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) preprocess.image_masks[2] shape=(1,) dtype=torch.float32 device=cuda:0 min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) preprocess.state shape=(1, 32) dtype=torch.float64 device=cuda:0 min=-0.661073 max=1.184689 mean=0.158309 std=0.446908
+(MultiStepRolloutWorker pid=109056) raw_actions shape=(1, 30, 32) dtype=torch.float32 device=cuda:0 min=-2.775370 max=0.760490 mean=-0.042541 std=0.443328
+(MultiStepRolloutWorker pid=109056) raw_actions[0,0,:12]=[-0.37754154205322266, -0.011887731961905956, 0.013427341356873512, -0.10253532975912094, 0.25416141748428345, 0.5502303242683411, 0.0005880482494831085, 0.09441860765218735, -0.0360385961830616, 0.10993467271327972, 0.04705669358372688, -0.33124908804893494]
+(MultiStepRolloutWorker pid=109056) env_actions shape=(1, 30, 23) dtype=float64
+(MultiStepRolloutWorker pid=109056) env_actions[0,0,:12]=[-0.0002525207525989892, 5.1212471928709894e-05, 0.000275569190414611, 1.0253199758559712, -1.448464639217361, -0.47004185786341773, 5.880482494831085e-10, 6.363254973010724e-05, -2.9998021616303467e-05, 2.3793321738991603e-05, 0.00014060519378949365, 2.2183585867668453e-05]
+(MultiStepRolloutWorker pid=109056) RLINF_DEBUG_ROLLOUT_STEP enabled
+(MultiStepRolloutWorker pid=109056) n_chunk_steps=225 (max_steps_per_rollout_epoch=4500, num_action_chunks=20)
+(MultiStepRolloutWorker pid=109056) num_pipeline_stages=1 (cfg.rollout.pipeline_stage_num)
+(MultiStepRolloutWorker pid=109056) stage_id=0 (pipeline stage index in [0, 0])
+(MultiStepRolloutWorker pid=109056) env_output.dones shape=(1, 20) dtype=bool device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.episode.episode_len shape=(1,) dtype=int64 device=cpu min=4500.000000 max=4500.000000 mean=4500.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.episode.episode_length shape=(1,) dtype=int64 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.episode.return shape=(1,) dtype=float32 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.episode.reward shape=(1,) dtype=float32 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.episode.success shape=(1,) dtype=bool device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.final_obs type=NoneType value=None
+(MultiStepRolloutWorker pid=109056) env_output.obs.images shape=(1, 3, 1080, 1080) dtype=float32 device=cpu min=0.000000 max=1.000000 mean=0.517460 std=0.179094
+(MultiStepRolloutWorker pid=109056) env_output.obs.states shape=(1, 23) dtype=float32 device=cpu min=-1.448457 max=1.025311 mean=0.048135 std=0.480798
+(MultiStepRolloutWorker pid=109056) env_output.obs.task_descriptions len=1 head=Turn on the radio receiver that's on the table in the living room.
+(MultiStepRolloutWorker pid=109056) env_output.obs.task_id shape=(1,) dtype=int64 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.obs.tokenized_prompt shape=(1, 2) dtype=int32 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.obs.tokenized_prompt_mask shape=(1, 2) dtype=bool device=cpu min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) env_output.obs.wrist_images shape=(1, 2, 3, 1080, 1080) dtype=float32 device=cpu min=0.000000 max=0.784314 mean=0.164242 std=0.220147
+(MultiStepRolloutWorker pid=109056) env_output.rewards type=NoneType value=None
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.chains shape=(1, 21, 30, 32) dtype=float32 device=cpu min=-3.469833 max=3.155479 mean=-0.045698 std=0.648600
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.denoise_inds shape=(1, 20) dtype=int64 device=cpu min=13.000000 max=13.000000 mean=13.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.observation/image shape=(1, 3, 1080, 1080) dtype=float32 device=cpu min=0.000000 max=1.000000 mean=0.517460 std=0.179094
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.observation/state shape=(1, 23) dtype=float32 device=cpu min=-1.448457 max=1.025311 mean=0.048135 std=0.480798
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.observation/wrist_image shape=(1, 2, 3, 1080, 1080) dtype=float32 device=cpu min=0.000000 max=0.784314 mean=0.164242 std=0.220147
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.task_id shape=(1,) dtype=int64 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.tokenized_prompt shape=(1, 2) dtype=int32 device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) result.forward_inputs.tokenized_prompt_mask shape=(1, 2) dtype=bool device=cpu min=1.000000 max=1.000000 mean=1.000000 std=0.000000
+(MultiStepRolloutWorker pid=109056) result.prev_logprobs shape=(1, 20, 30, 23) dtype=float32 device=cuda:0 min=-0.918939 max=-0.918939 mean=-0.918939 std=0.000000
+(MultiStepRolloutWorker pid=109056) result.prev_values shape=(1, 1) dtype=float32 device=cuda:0 min=-0.311923 max=-0.311923 mean=-0.311923 std=0.000000
+(MultiStepRolloutWorker pid=109056) result.subtask_logits shape=(1, 15) dtype=float32 device=cuda:0 min=-2.859710 max=15.646659 mean=-0.053101 std=4.329485
+(MultiStepRolloutWorker pid=109056) actions shape=(1, 20, 23) dtype=float64 min=-1.448491 max=1.025501 mean=0.037573 std=0.484266
+(MultiStepRolloutWorker pid=109056) ChunkStepResult prev_logprobs=shape=(1, 20, 30, 23) dtype=float32 device=cpu min=-0.918939 max=-0.918939 mean=-0.918939 std=0.000000 prev_values=shape=(1, 1) dtype=float32 device=cpu min=-0.311923 max=-0.311923 mean=-0.311923 std=0.000000 dones=shape=(1, 20) dtype=bool device=cpu min=0.000000 max=0.000000 mean=0.000000 std=0.000000 rewards=type=NoneType value=None
+(MultiStepRolloutWorker pid=109056) buffer_list size=1 buffer_list[0]=EmbodiedRolloutResult

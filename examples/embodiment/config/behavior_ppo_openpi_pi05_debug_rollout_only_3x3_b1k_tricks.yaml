@@ -17,8 +17,8 @@ cluster:
   num_nodes: 1
   component_placement:
     actor: 0
-    rollout: 0-3
-    env: 4-7
+    rollout: 0
+    env: 4
 
 runner:
   task_type: embodied
@@ -88,14 +88,14 @@ env:
   enable_offload: False
 
   train:
-    total_num_envs: 4
+    total_num_envs: 1
     max_episode_steps: 4500
     max_steps_per_rollout_epoch: 4500
     video_cfg:
       save_video: True
       video_base_dir: ${runner.logger.log_path}/video/rollout
   eval:
-    total_num_envs: 4
+    total_num_envs: 1
     max_episode_steps: 4500
     max_steps_per_rollout_epoch: 4500
     video_cfg:
