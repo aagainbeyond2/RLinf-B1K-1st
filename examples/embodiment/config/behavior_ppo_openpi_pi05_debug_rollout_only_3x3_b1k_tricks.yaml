@@ -45,7 +45,7 @@ algorithm:
   normalize_advantages: True
   kl_penalty: kl
   group_size: 1
-  rollout_epoch: 8
+  rollout_epoch: 1
   eval_rollout_epoch: 1
 
   reward_type: chunk_level
@@ -161,7 +161,7 @@ actor:
       num_images_in_input: 3
       action_env_dim: ${actor.model.action_dim}
       action_chunk: 30
-      num_steps: 15
+      num_steps: 20
       num_flow_samples: 1
       train_expert_only: True
 
