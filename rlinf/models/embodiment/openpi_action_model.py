@@ -38,8 +38,10 @@ def _env_flag(name: str) -> bool:
     return str(os.environ.get(name, "")).lower() not in ("", "0", "false", "no")
 
 
-_OPENPI_DEBUG_ENABLED = _env_flag("RLINF_DEBUG_OPENPI") or _env_flag(
-    "RLINF_DEBUG_OPENPI_SAVE"
+_OPENPI_DEBUG_ENABLED = (
+    _env_flag("RLINF_DEBUG_OPENPI")
+    or _env_flag("RLINF_DEBUG_OPENPI_SAVE")
+    or _env_flag("RLINF_DEBUG_PREDICT_TRACE")
 )
 _OPENPI_DEBUG_PRINTED = False
 _OPENPI_DEBUG_SAVED = False

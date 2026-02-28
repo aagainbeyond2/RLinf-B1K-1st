@@ -742,6 +742,87 @@ class MultiStepRolloutWorker(Worker):
         return actions_exec
 
     def predict(self, env_obs, mode="train"):
+        if not hasattr(self, "_debug_predict_trace_remaining"):
+            enabled = str(os.environ.get("RLINF_DEBUG_PREDICT_TRACE", "")).lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+            raw_n = os.environ.get("RLINF_DEBUG_PREDICT_TRACE_N", "1")
+            try:
+                n = int(raw_n)
+            except Exception:
+                n = 1
+            self._debug_predict_trace_remaining = max(0, n) if enabled else 0
+
+        def _to_np(x):
+            if torch.is_tensor(x):
+                return x.detach().cpu().numpy()
+            if isinstance(x, np.ndarray):
+                return x
+            return np.asarray(x)
+
+        def _stats(x):
+            if torch.is_tensor(x):
+                shape = tuple(x.shape)
+                dtype = x.dtype
+                device = x.device
+                if x.numel() == 0:
+                    return f"shape={shape} dtype={dtype} device={device}"
+                x_f = x.detach().to(device="cpu", dtype=torch.float32)
+                return (
+                    f"shape={shape} dtype={dtype} device={device} "
+                    f"min={float(x_f.min()):.6f} max={float(x_f.max()):.6f} "
+                    f"mean={float(x_f.mean()):.6f} std={float(x_f.std(unbiased=False)):.6f}"
+                )
+            if isinstance(x, np.ndarray):
+                shape = tuple(x.shape)
+                dtype = x.dtype
+                if x.size == 0:
+                    return f"shape={shape} dtype={dtype}"
+                x_f = x.astype(np.float32, copy=False)
+                return (
+                    f"shape={shape} dtype={dtype} "
+                    f"min={float(x_f.min()):.6f} max={float(x_f.max()):.6f} "
+                    f"mean={float(x_f.mean()):.6f} std={float(x_f.std()):.6f}"
+                )
+            if hasattr(x, "__array__") or hasattr(x, "shape"):
+                try:
+                    arr = _to_np(x)
+                    shape = tuple(arr.shape)
+                    dtype = arr.dtype
+                    if getattr(arr, "size", 0) == 0:
+                        return f"shape={shape} dtype={dtype}"
+                    arr_f = arr.astype(np.float32, copy=False)
+                    return (
+                        f"shape={shape} dtype={dtype} "
+                        f"min={float(arr_f.min()):.6f} max={float(arr_f.max()):.6f} "
+                        f"mean={float(arr_f.mean()):.6f} std={float(arr_f.std()):.6f}"
+                    )
+                except Exception:
+                    pass
+            return f"type={type(x).__name__}"
+
+        def _summarize(obj, prefix, lines, limit):
+            if len(lines) >= limit:
+                return
+            if isinstance(obj, dict):
+                for k in sorted(obj.keys(), key=lambda z: str(z)):
+                    _summarize(
+                        obj[k],
+                        f"{prefix}.{k}" if prefix else str(k),
+                        lines,
+                        limit,
+                    )
+                return
+            if isinstance(obj, (list, tuple)):
+                lines.append(f"{prefix} len={len(obj)} type={type(obj).__name__}")
+                for i in range(len(obj)):
+                    _summarize(obj[i], f"{prefix}[{i}]", lines, limit)
+                return
+            lines.append(f"{prefix} {_stats(obj)}")
+
         kwargs = (
             self._train_sampling_params
             if mode == "train"
@@ -756,17 +837,52 @@ class MultiStepRolloutWorker(Worker):
             kwargs = {"mode": mode}
 
         if isinstance(env_obs, dict):
+            if self._debug_predict_trace_remaining > 0:
+                lines = []
+                lines.append(
+                    f"[predict.trace] enter mode={mode} pid={os.getpid()} rank={getattr(self, '_rank', None)} "
+                    f"hf_model={type(self.hf_model).__name__}"
+                )
+                _summarize(env_obs, "env_obs", lines, 400)
+                print("\n".join(lines), flush=True)
+
             self._prepare_b1k_tokenized_prompt(env_obs)
+
+            if self._debug_predict_trace_remaining > 0:
+                lines = []
+                lines.append(
+                    "[predict.trace] after _prepare_b1k_tokenized_prompt"
+                )
+                for k in ("tokenized_prompt", "tokenized_prompt_mask", "task_id"):
+                    if k in env_obs:
+                        lines.append(f"env_obs.{k} {_stats(env_obs[k])}")
+                print("\n".join(lines), flush=True)
 
         with torch.no_grad():
             if isinstance(env_obs, dict) and self._b1k_tricks_enabled():
+                if self._debug_predict_trace_remaining > 0:
+                    print("[predict.trace] branch: b1k_tricks_enabled", flush=True)
                 device = next(self.hf_model.parameters()).device
                 initial_actions, indices = self._b1k_collect_initial_actions(device=device)
+                if self._debug_predict_trace_remaining > 0:
+                    print(
+                        f"[predict.trace] _b1k_collect_initial_actions "
+                        f"initial_actions={_stats(initial_actions) if initial_actions is not None else 'None'} "
+                        f"indices_len={len(indices)}",
+                        flush=True,
+                    )
                 if initial_actions is not None and len(indices) > 0:
                     batch_size = int(env_obs["task_id"].shape[0]) if torch.is_tensor(env_obs.get("task_id", None)) else int(initial_actions.shape[0])
                     if len(indices) == batch_size:
                         kwargs = dict(kwargs)
                         kwargs["initial_actions"] = initial_actions
+                        if self._debug_predict_trace_remaining > 0:
+                            print(
+                                f"[predict.trace] calling hf_model.predict_action_batch(all) "
+                                f"env_obs.task_id={_stats(env_obs.get('task_id', None))} "
+                                f"initial_actions={_stats(initial_actions)}",
+                                flush=True,
+                            )
                         actions, result = self.hf_model.predict_action_batch(
                             env_obs=env_obs,
                             **kwargs,
@@ -781,6 +897,13 @@ class MultiStepRolloutWorker(Worker):
                         kwargs_yes = dict(kwargs)
                         kwargs_yes["initial_actions"] = initial_actions
 
+                        if self._debug_predict_trace_remaining > 0:
+                            print(
+                                f"[predict.trace] calling hf_model.predict_action_batch(split) "
+                                f"yes={len(indices)} no={len(indices_no)} "
+                                f"initial_actions={_stats(initial_actions)}",
+                                flush=True,
+                            )
                         actions_yes, result_yes = self.hf_model.predict_action_batch(
                             env_obs=env_obs_yes, **kwargs_yes
                         )
@@ -823,20 +946,65 @@ class MultiStepRolloutWorker(Worker):
 
                         actions, result = actions_out, result_out
                 else:
+                    if self._debug_predict_trace_remaining > 0:
+                        print(
+                            "[predict.trace] calling hf_model.predict_action_batch(no_initial_actions)",
+                            flush=True,
+                        )
                     actions, result = self.hf_model.predict_action_batch(
                         env_obs=env_obs,
                         **kwargs,
                     )
             else:
+                if self._debug_predict_trace_remaining > 0:
+                    print(
+                        f"[predict.trace] calling hf_model.predict_action_batch(baseline) "
+                        f"env_obs_type={type(env_obs).__name__}",
+                        flush=True,
+                    )
                 actions, result = self.hf_model.predict_action_batch(
                     env_obs=env_obs,
                     **kwargs,
                 )
 
+        if self._debug_predict_trace_remaining > 0:
+            lines = []
+            lines.append("[predict.trace] after hf_model.predict_action_batch")
+            lines.append(f"actions {_stats(actions)}")
+            if isinstance(result, dict):
+                lines.append(f"result.keys={sorted(list(result.keys()))}")
+                for k in ("prev_logprobs", "prev_values", "subtask_logits"):
+                    if k in result:
+                        lines.append(f"result.{k} {_stats(result[k])}")
+                fi = result.get("forward_inputs", None)
+                if isinstance(fi, dict):
+                    for k in sorted(fi.keys()):
+                        v = fi[k]
+                        if torch.is_tensor(v) or isinstance(v, np.ndarray) or hasattr(v, "shape"):
+                            lines.append(f"result.forward_inputs.{k} {_stats(v)}")
+            print("\n".join(lines), flush=True)
+
         if isinstance(env_obs, dict) and isinstance(actions, np.ndarray):
             if isinstance(result, dict):
                 self._update_b1k_stage_from_logits(result)
-            actions = self._apply_b1k_tricks_to_actions(env_obs, actions)
+            if self._debug_predict_trace_remaining > 0:
+                before = np.asarray(actions)
+                actions = self._apply_b1k_tricks_to_actions(env_obs, actions)
+                after = np.asarray(actions)
+                try:
+                    delta = float(np.linalg.norm(after - before))
+                except Exception:
+                    delta = float("nan")
+                print(
+                    f"[predict.trace] after _apply_b1k_tricks_to_actions "
+                    f"actions { _stats(after) } delta_l2={delta}",
+                    flush=True,
+                )
+            else:
+                actions = self._apply_b1k_tricks_to_actions(env_obs, actions)
+
+        if self._debug_predict_trace_remaining > 0:
+            self._debug_predict_trace_remaining -= 1
 
         return actions, result
 
